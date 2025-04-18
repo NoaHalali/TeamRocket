@@ -85,15 +85,16 @@ describe('PollsManager', () => {
   test('vote should not throw error for a valid vote', () => {
     // Arrange
     const pollId = 1;
-    const optionText = 'Option1';
     const poll = {
       id: pollId,
-      options: ['Option1','Option2']
+      options: ['Option1', 'Option2'],
+      vote: jest.fn()
     };
-   pollsMemoryManagement.getPoll.mockReturnValue(poll);
+    pollsMemoryManagement.getPoll = jest.fn().mockReturnValue(poll);
 
     // Act & Assert
-    expect(() => pollsManager.vote(pollId, optionText)).not.toThrow();
+    expect(() => pollsManager.vote(pollId, 0, 'user123')).not.toThrow();
+    expect(poll.vote).toHaveBeenCalledWith(0, 'user123');
   });
 
   test('vote should throw error when poll is not found', () => {
@@ -107,23 +108,21 @@ describe('PollsManager', () => {
       .toThrow(`Poll with ID ${pollId} not found.`);
   });
 
-  test('vote should throw error when option does not exist in poll', () => {
+  test('vote should throw error when option index is invalid (out of range)', () => {
     // Arrange
     const pollId = 1;
-    const optionText = 'Nonexistent Option';
     const poll = {
       id: pollId,
-      options: [
-        { option: 'Option1' },
-        { option: 'Option2' }
-      ]
+      options: ['Option1', 'Option2'],
+      vote: jest.fn()
     };
-    pollsMemoryManagement.getPoll.mockReturnValue(poll);
+    pollsMemoryManagement.getPoll = jest.fn().mockReturnValue(poll);
 
     // Act & Assert
-    expect(() => pollsManager.vote(pollId, optionText))
-      .toThrow(`Option "${optionText}" does not exist in poll ${pollId}.`);
+    expect(() => pollsManager.vote(pollId, 5, 'user123'))
+      .toThrow('Invalid option index: 5');
   });
+
 
   // getResults Method Tests
 
@@ -168,7 +167,7 @@ describe('PollsManager', () => {
 
     // Act & Assert
     expect(() => pollsManager.getResults(pollId))
-      .toThrow('id must be a string or number');
+      .toThrow(`Poll ID must be a number.`);
   });
 });
 

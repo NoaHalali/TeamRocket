@@ -97,15 +97,23 @@ export default class PollsManager {
   /**
    * Registers a vote for a specified option in a poll.
    * @param {string} pollId - The unique identifier of the poll.
-   * @param {string} optionText - The text of the option to vote for.
+   * @param {number} optionIndex - The text of the option to vote for.
    * @param {string} username - The username of the voter.
    */
-  vote(pollId, optionText, username) {
+  vote(pollId, optionIndex, username) {
     const poll = this.pollsMemoryManagement.getPoll(pollId);
     if (!poll) {
       throw new Error(`Poll with ID ${pollId} not found.`);
     }
-    poll.vote(optionText, username);
+
+    if (
+      typeof optionIndex !== 'number' ||
+      optionIndex < 0 ||
+      optionIndex >= poll.options.length
+    ) {
+      throw new Error(`Invalid option index: ${optionIndex}`);
+    }
+    poll.vote(optionIndex, username);
   }
 
   /**
@@ -121,6 +129,10 @@ export default class PollsManager {
    * // results: { question: "Favorite programming language?", totalVotes: 5, results: { "JavaScript": 3, "Python": 2 } }
    */
   getResults(pollId) {
+    // Validate pollId
+    if (typeof pollId !== 'number') {
+      throw new TypeError(`Poll ID must be a number.`);
+    }
     const poll = this.pollsMemoryManagement.getPoll(pollId);
     if (!poll) {
       throw new Error(`Poll with ID ${pollId} not found.`);

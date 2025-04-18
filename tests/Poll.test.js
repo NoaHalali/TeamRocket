@@ -57,7 +57,7 @@ describe('Poll Class', () => {
     const poll = new Poll('Vote test?', ['OptionA', 'OptionB'],'creator');
     
     // Act
-    poll.vote('OptionA');
+    poll.vote(0, 'paz');
 
     // Assert
     expect(poll.results['OptionA']).toBe(1);
@@ -70,8 +70,28 @@ describe('Poll Class', () => {
     const poll = new Poll('Invalid vote test?', ['Yes', 'No'], 'creator');
 
     // Act & Assert
-    expect(() => poll.vote('Maybe')).toThrow(Error);
-    expect(() => poll.vote('Maybe')).toThrow('Invalid option: "Maybe"');
+    expect(() => poll.vote(2, 'bob')).toThrow(Error);
+    expect(() => poll.vote(2, 'bob')).toThrow('Invalid option index: 2');
+  });
+
+
+  test('should throw error if user tries to vote twice in the same poll', () => {
+    // Arrange
+    const poll = new Poll('Duplicate vote test?', ['Option1', 'Option2'], 'creator');
+  
+    // Act
+    poll.vote(0, 'user123'); 
+  
+    // Assert
+    expect(() => poll.vote(1, 'user123')).toThrow(Error);
+    expect(() => poll.vote(1, 'user123')).toThrow('User "user123" has already voted in this poll.');
+  
+    // Verify that only the first vote was counted
+    expect(poll.totalVotes).toBe(1);
+    expect(poll.results).toEqual({
+      Option1: 1,
+      Option2: 0
+    });
   });
 
   // Combination Test: Multiple votes across options
@@ -80,29 +100,17 @@ describe('Poll Class', () => {
     const poll = new Poll('Multiple votes test?', ['A', 'B', 'C'], 'creator');
 
     // Act
-    poll.vote('A'); // A: 1
-    poll.vote('B'); // B: 1
-    poll.vote('A'); // A: 2
-    poll.vote('C'); // C: 1
-    poll.vote('B'); // B: 2
+    poll.vote(0, 'u1'); // A
+    poll.vote(1, 'u2'); // B
+    poll.vote(0, 'u3'); // A
+    poll.vote(2, 'u4'); // C
+    poll.vote(1, 'u5'); // B
 
     // Assert
     expect(poll.results).toEqual({ A: 2, B: 2, C: 1 });
     expect(poll.totalVotes).toBe(5);
   });
 
-  // Edge Case: Vote for an option that is an empty string (if allowed)
-  test('should handle voting for an empty string option', () => {
-    // Arrange
-    const poll = new Poll('Empty string option test?', ['', 'Non-empty'], 'creator');
-    
-    // Act
-    poll.vote('');
-    
-    // Assert
-    expect(poll.results['']).toBe(1);
-    expect(poll.totalVotes).toBe(1);
-  });
 
   // Edge Case: Poll with empty options array
   test('should create poll with empty options and throw error on vote attempt', () => {
@@ -112,7 +120,7 @@ describe('Poll Class', () => {
     // Act & Assert
     expect(poll.options).toEqual([]);
     expect(poll.results).toEqual({});
-    expect(() => poll.vote('anything')).toThrow(Error);
+    expect(() => poll.vote(1, 'bob')).toThrow(Error);
   });
 
   // Combination Test: Full flow (create poll, vote multiple times, and verify final state)
@@ -121,12 +129,12 @@ describe('Poll Class', () => {
     const poll = new Poll('Full flow test?', ['Yes', 'No', 'Maybe'], 'creator');
     
     // Act
-    poll.vote('Yes');
-    poll.vote('No');
-    poll.vote('Yes');
-    poll.vote('Maybe');
-    poll.vote('No');
-    poll.vote('Yes');
+    poll.vote(0, 'a'); // Yes
+    poll.vote(1, 'b'); // No
+    poll.vote(0, 'c'); // Yes
+    poll.vote(2, 'd'); // Maybe
+    poll.vote(1, 'e'); // No
+    poll.vote(0, 'f'); // Yes
 
     // Assert
     expect(poll.results).toEqual({
@@ -144,11 +152,10 @@ describe('Poll Class', () => {
     const poll2 = new Poll('Poll 2?', ['OptA', 'OptB'], 'creator2');
 
     // Act
-    poll1.vote('Opt1');
-    poll1.vote('Opt2');
-    poll2.vote('OptA');
-    poll2.vote('OptA');
-
+    poll1.vote(0, 'user1');
+    poll1.vote(1, 'user2');
+    poll2.vote(0, 'user3');
+    poll2.vote(0, 'user4');
     // Assert
     expect(poll1.results).toEqual({ Opt1: 1, Opt2: 1 });
     expect(poll1.totalVotes).toBe(2);

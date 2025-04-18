@@ -122,20 +122,28 @@ export default class Poll {
     /**
      * Records a vote for a specified option.
      *
-     * @param {string} option - The option to vote for.
+     * @param {number} optionIndex - The option to vote for.
      * @param {string} username - The username of the voter.
      * @throws {Error} Throws an error if the specified option is not valid or if the user has already voted.
      */
-    vote(option, username) {
-      if (!(option in this.#results)) {
-        throw new Error(`Invalid option: "${option}"`);
+    vote(optionIndex, username) {
+
+      if (
+        typeof optionIndex !== 'number' ||
+        optionIndex < 0 ||
+        optionIndex >= this.#options.length
+      ) {
+        throw new Error(`Invalid option index: ${optionIndex}`);
       }
+
       if (!this.#voters) {
         this.#voters = new Set(); // Track users who voted
       }
       if (this.#voters.has(username)) {
         throw new Error(`User "${username}" has already voted in this poll.`);
       }
+
+      const option = this.#options[optionIndex];
       this.#results[option] += 1;
       this.#totalVotes += 1;
       this.#voters.add(username);
