@@ -3,6 +3,11 @@ import PollsManager from '../services/PollsManager.js';
 import UserManager from '../services/UserManager.js';
 
 const router = express.Router();
+
+// Paz changed hehre - added this to parss json bodies
+// Parse JSON bodies for all routes in this router
+router.use(express.json());
+
 const pollsManager = new PollsManager();
 const userManager = new UserManager();
 
@@ -58,6 +63,40 @@ router.post('/polls/:id/vote', (req, res) => {
     res.status(200).send({ message: `Vote recorded for option "${option}" by user "${username}".` });
   } catch (error) {
     res.status(400).send({ error: error.message });
+  }
+});
+
+// Create a new poll
+router.post('/polls', (req, res) => {
+  const { question, options, username } = req.body || {};
+   
+  // Validate question
+  if (!question || typeof question !== 'string' || question.trim().length === 0) {
+    res.status(400).json({ error: 'Poll question cannot be empty.' });
+    return;
+  }
+
+  // Validate options
+  if (
+    !Array.isArray(options) ||
+    !options.every(opt => typeof opt === 'string' && opt.trim().length > 0) ||
+    options.length < 2
+  ) {
+    res.status(400).json({ error: 'Poll must have at least 2 options.' });
+    return;
+  }
+
+  // Validate user
+  if (typeof username !== 'string' || username.trim().length === 0) {
+    res.status(400).json({ error: `User "${username}" must be a non-empty and a string.` });
+    return;
+  }
+
+  try {
+    const poll = pollsManager.createPoll(question, options, username);
+    res.status(201).json(poll);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
   }
 });
 
