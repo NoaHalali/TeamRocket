@@ -29,6 +29,9 @@ router.post('/users', async (req , res ) => {
 router.get('/polls', async (req, res) => {
   try {
     const polls = await pollsManager.getPolls();
+    if (polls.length === 0) {
+      return res.status(200).json({ message: 'No polls available.' });
+    }
     res.status(200).json(polls);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -119,6 +122,7 @@ router.post('/polls', async (req, res) => {
     }
 
     const poll = await pollsManager.createPoll(question.trim(), options.map(opt => opt.trim()), username.trim());
+    console.log("Poll created:", poll);
     res.status(201).json({ message: `Poll "${poll.uuid}" created successfully.` });
   } catch (error) {
     res.status(400).json({ error: error.message });

@@ -9,7 +9,18 @@ import { v4 as uuidv4 } from 'uuid';
  * console.log(poll.results); // { Red: 0, Blue: 1, Green: 0 }
  */
 export default class Poll {
+toJSON() {
+  return {
+    uuid: this.uuid,
+    question: this.question,
+    options: this.options,
+    creator: this.creator,
+    totalVotes: this.totalVotes,
+    results: this.results
+  };
+}
     /**
+     * 
      * @type {Object.<string, number>}
      */
     #results;
