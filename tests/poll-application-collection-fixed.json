@@ -1,0 +1,196 @@
+{
+  "info": {
+    "name": "Poll Application API - Fixed",
+    "_postman_id": "abcd1234-abcd-1234-abcd-1234abcd5678",
+    "description": "Fixed Collection to test Poll Application APIs",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Create User",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Create Poll",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"question\": \"What is your favorite color?\",\n  \"options\": [\"Red\", \"Blue\", \"Green\"],\n  \"username\": \"testuser\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/polls",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "polls"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Vote on Poll",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"option\": 0,\n  \"username\": \"testuser\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/polls/{{pollId}}/vote",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "polls",
+            "{{pollId}}",
+            "vote"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get All Polls",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/polls",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "polls"
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Polls by Creator",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/polls/creator?username=testuser",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "polls",
+            "creator"
+          ],
+          "query": [
+            {
+              "key": "username",
+              "value": "testuser"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Get Polls Voted by User",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:3000/api/polls/voter?username=testuser",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "polls",
+            "voter"
+          ],
+          "query": [
+            {
+              "key": "username",
+              "value": "testuser"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "Delete Poll",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"testuser\"\n}"
+        },
+        "url": {
+          "raw": "http://localhost:3000/api/polls/{{pollId}}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "3000",
+          "path": [
+            "api",
+            "polls",
+            "{{pollId}}"
+          ]
+        }
+      }
+    }
+  ]
+}
