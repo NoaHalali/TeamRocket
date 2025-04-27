@@ -80,12 +80,12 @@ router.post('/polls/:id/vote', async (req, res) => {
     return res.status(400).json({ error: 'Username must be a non-empty string.' });
   }
 
-  if (typeof option !== 'number') {
+  if (isNaN(option)) {
     return res.status(400).json({ error: 'Option must be a valid number.' });
   }
 
   try {
-    await pollsManager.vote(id, option, username.trim());
+    await pollsManager.vote(id, parseInt(option), username.trim());
     res.status(200).json({ message: `Vote recorded for option "${option}" by user "${username}".` });
   } catch (error) {
     res.status(400).json({ error: error.message });

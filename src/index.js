@@ -94,34 +94,26 @@ function createPoll() {
 }
 
 function votePoll() {
-  rl.question("Enter poll ID: ", async (pollId) => {
+  rl.question("Enter poll ID, option index, and username (comma separated, e.g., 'pollId,1,username'): ", async (input) => {
+    const [pollId, optionIndex, username] = input.split(',').map(item => item.trim());
     try {
-      const poll = await pollsManager.getPoll(pollId.trim());
+      const poll = await pollsManager.getPoll(pollId);
       if (!poll) {
         console.error(`Poll with ID "${pollId}" not found.`);
         return mainMenu();
       }
 
-      console.log(`Options for poll "${poll.question}":`);
-      poll.options.forEach((option, index) => {
-        console.log(`${index}: ${option}`);
-      });
+      if (!poll.options[optionIndex]) {
+        console.error(`Invalid option index "${optionIndex}" for poll "${poll.question}".`);
+        return mainMenu();
+      }
 
-      rl.question("Enter option index to vote for: ", (optionIndex) => {
-        rl.question("Enter your username: ", async (username) => {
-          try {
-            await pollsManager.vote(pollId.trim(), parseInt(optionIndex), username.trim());
-            console.log(`Vote recorded for option "${poll.options[optionIndex]}" by user "${username}".`);
-          } catch (error) {
-            console.error("Error voting:", error.message);
-          }
-          mainMenu();
-        });
-      });
+      await pollsManager.vote(pollId, parseInt(optionIndex), username);
+      console.log(`Vote recorded for option "${poll.options[optionIndex]}" by user "${username}".`);
     } catch (error) {
-      console.error("Error retrieving poll:", error.message);
-      mainMenu();
+      console.error("Error voting:", error.message);
     }
+    mainMenu();
   });
 }
 
