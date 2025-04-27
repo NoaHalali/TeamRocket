@@ -113,8 +113,13 @@ router.post('/polls', async (req, res) => {
   }
 
   try {
+    const userExists = await userManager.userExists(username.trim());
+    if (!userExists) {
+      return res.status(400).json({ error: `User '${username}' does not exist. Please create the user first.` });
+    }
+
     const poll = await pollsManager.createPoll(question.trim(), options.map(opt => opt.trim()), username.trim());
-    res.status(201).json(poll);
+    res.status(201).json({ message: `Poll "${poll.uuid}" created successfully.` });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }

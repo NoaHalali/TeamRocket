@@ -81,6 +81,7 @@ function createPoll() {
             console.error(`User "${username}" does not exist. Please create the user first.`);
             return mainMenu();
           }
+
           const options = optionsInput.split(",").map(opt => opt.trim()).filter(opt => opt.length > 0);
           const poll = await pollsManager.createPoll(question, options, username.trim());
           console.log(`Poll created by ${username}, with ID: ${poll.uuid}`);
