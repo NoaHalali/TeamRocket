@@ -1,102 +1,139 @@
+/**
+ * @module PollsManager
+ * @description
+ * Service‑layer façade that wraps {@link PollsMemoryManagement} to expose the
+ * business‑logic API required by the application (create poll, vote, list, etc.).
+ * The class is *framework‑agnostic* – it contains no Express‑specific code so
+ * that it can be reused in CLI tools or unit tests without modification.
+ */
+
 import PollsMemoryManagement from '../repositories/PollsMemoryManagement.js';
 import Poll from '../models/Poll.js';
 
 /**
- * Service layer for handling poll business logic.
- * Provides methods to create polls, register votes, and retrieve poll results.
+ * High‑level service responsible for orchestrating poll operations.
  *
  * @example
- * const pollService = new PollService();
- * const poll = pollService.createPoll('What is your favorite color?', ['Red', 'Green', 'Blue']);
- * pollService.vote(poll.id, 'Red');
- * const results = pollService.getResults(poll.id);
+ * ```js
+ * import PollsManager from './services/PollsManager.js';
+ *
+ * const service = new PollsManager();
+ * const poll = await service.createPoll('Favourite colour?', ['Red', 'Blue'], 'alice');
+ * await service.vote(poll.uuid, 1, 'bob');      // Bob votes for "Blue"
+ * const summary = await service.getResults(poll.uuid);
+ * console.log(summary.totalVotes);              // => 1
+ * ```
  */
 export default class PollsManager {
   /**
-   * Creates an instance of PollService.
+   * Underlying data‑access layer.
+   * @type {PollsMemoryManagement}
+   * @private
+   */
+  pollsMemoryManagement;
+
+  /* ------------------------------------------------------------------ *
+   * Construction                                                       *
+   * ------------------------------------------------------------------ */
+
+  /**
+   * Create a new {@link PollsManager} instance.
    *
-   * @param {PollsMemoryManagement} [pollsMemoryManagement=new PollsMemoryManagement()] - An instance of PollsMemoryManagement used for data storage.
+   * @param {PollsMemoryManagement} [pollsMemoryManagement] Optional custom
+   *        repository implementation. If omitted, a new in‑memory repository
+   *        is created automatically.
    */
   constructor(pollsMemoryManagement) {
     this.pollsMemoryManagement = pollsMemoryManagement || new PollsMemoryManagement();
   }
 
+  /* ------------------------------------------------------------------ *
+   * Query helpers                                                      *
+   * ------------------------------------------------------------------ */
+
   /**
-   * Retrieves all polls from the memory management system.
+   * Fetch **all** polls currently stored by the repository.
    *
-   * @returns {Promise<Array>} A promise that resolves to an array of all polls.
+   * @returns {Promise<Poll[]>} Promise that resolves with an array of polls.
    */
   async getPolls() {
-    return await this.pollsMemoryManagement.getAllPolls();
+    return this.pollsMemoryManagement.getAllPolls();
   }
 
   /**
-   * Retrieves a poll by its ID.  
-   * 
-   * @param {string} pollId - The unique identifier of the poll.
-   * @returns {Promise<Poll|null>} The Poll instance if found; otherwise, null.
+   * Retrieve a single poll by its UUID.
+   *
+   * @param {string} pollId The UUID of the poll to fetch.
+   * @returns {Promise<Poll|null>} The poll or `null` if it does not exist.
    */
   async getPoll(pollId) {
-    return await this.pollsMemoryManagement.getPoll(pollId);
-  } 
+    return this.pollsMemoryManagement.getPoll(pollId);
+  }
+
+  /* ------------------------------------------------------------------ *
+   * Mutations                                                          *
+   * ------------------------------------------------------------------ */
 
   /**
-   * Creates a new poll with the provided question and options.
+   * Create and persist a new poll.
    *
-   * @param {string} question - A non-empty string representing the poll question.
-   * @param {string[]} options - An array of non-empty strings representing poll options (minimum 2 options).
-   * @returns {Promise<Poll>} The newly created Poll instance.
-   * @throws {Error} Throws an error if the question is empty or not a valid string.
-   * @throws {Error} Throws an error if options is not an array of at least 2 non-empty strings.
+   * @param {string}   question  Non‑empty question text.
+   * @param {string[]} options   Array of **at least two** non‑empty option strings.
+   * @param {string}   creator   Username of the poll creator.
    *
-   * @example
-   * const poll = await pollService.createPoll("Favorite programming language?", ["JavaScript", "Python"]);
+   * @throws {Error} If validation fails.
+   *
+   * @returns {Promise<Poll>} The created {@link Poll} instance.
    */
   async createPoll(question, options, creator) {
-    // Validate question
     if (!question || typeof question !== 'string' || question.trim().length === 0) {
       throw new Error('Poll question cannot be empty.');
     }
-
-    // Validate options
     if (
       !Array.isArray(options) ||
-      !options.every(opt => typeof opt === 'string' && opt.trim().length > 0) ||
-      options.length < 2
+      options.length < 2 ||
+      !options.every(opt => typeof opt === 'string' && opt.trim())
     ) {
       throw new Error('Poll must have at least 2 options.');
     }
+
     const poll = new Poll(question, options, creator);
     await this.pollsMemoryManagement.addPoll(poll);
-  
     return poll;
   }
 
   /**
-   * Lists all polls created by a specific user.
-   * @param {string} username - The username of the creator.
-   * @returns {Promise<Poll[]>} An array of polls created by the user.
+   * List all polls created by a specific user.
+   *
+   * @param {string} username The creator's username.
+   * @returns {Promise<Poll[]>} Array of polls created by `username`.
    */
   async listPollsByCreator(username) {
     const polls = await this.pollsMemoryManagement.getAllPolls();
-    return polls.filter(poll => poll.creator === username);
+    return polls.filter(p => p.creator === username);
   }
 
   /**
-   * Lists all polls a user has voted in.
-   * @param {string} username - The username of the voter.
-   * @returns {Promise<Poll[]>} An array of polls the user has voted in.
+   * List all polls in which a user has cast a vote.
+   *
+   * @param {string} username The voter's username.
+   * @returns {Promise<Poll[]>} Array of polls the user participated in.
    */
   async listPollsVotedByUser(username) {
     const polls = await this.pollsMemoryManagement.getAllPolls();
-    return polls.filter(poll => poll.voters?.has(username));
+    return polls.filter(p => p.voters?.has(username));
   }
 
   /**
-   * Registers a vote for a specified option in a poll.
-   * @param {string} pollId - The unique identifier of the poll.
-   * @param {number} optionIndex - The index of the option to vote for.
-   * @param {string} username - The username of the voter.
+   * Register a vote for a given option in a poll.
+   *
+   * @param {string} pollId       UUID of the poll.
+   * @param {number} optionIndex  Index of the option selected.
+   * @param {string} username     Username of the voter.
+   *
+   * @throws {Error|RangeError} Propagates errors from {@link Poll#vote} or
+   *         throws if the poll does not exist.
+   *
    * @returns {Promise<void>}
    */
   async vote(pollId, optionIndex, username) {
@@ -107,23 +144,25 @@ export default class PollsManager {
     poll.vote(optionIndex, username);
   }
 
+  /* ------------------------------------------------------------------ *
+   * Results & deletion                                                 *
+   * ------------------------------------------------------------------ */
+
   /**
-   * Retrieves the results of a specified poll.
+   * Get an immutable snapshot of a poll's results.
    *
-   * @param {string} pollId - The unique identifier of the poll.
-   * @returns {Promise<Object>} An object containing the poll's question, total vote count, and the vote counts for each option.
-   * @throws {Error} Throws if the poll with the given ID is not found.
+   * @param {string} pollId UUID of the poll.
    *
-   * @example
-   * const results = await pollService.getResults(1);
-   * // results: { question: "Favorite programming language?", totalVotes: 5, results: { "JavaScript": 3, "Python": 2 } }
+   * @returns {Promise<{question:string,totalVotes:number,results:Object.<string,number>}>}
+   *          Object with summary data.
+   *
+   * @throws {Error} If the poll does not exist.
    */
   async getResults(pollId) {
     const poll = await this.pollsMemoryManagement.getPoll(pollId);
     if (!poll) {
       throw new Error(`Poll with ID ${pollId} not found.`);
     }
-
     return {
       question: poll.question,
       totalVotes: poll.totalVotes,
@@ -132,23 +171,23 @@ export default class PollsManager {
   }
 
   /**
-   * Deletes a poll with the specified ID and username.
+   * Delete a poll – only the **creator** is authorised to do so.
    *
-   * @param {string} pollId - The unique identifier of the poll.
-   * @param {string} username - The username of the person requesting the deletion.
+   * @param {string} pollId   UUID of the poll.
+   * @param {string} username Username of the requester.
+   *
+   * @throws {Error} If poll does not exist or requester is not the creator.
+   *
    * @returns {Promise<void>}
    */
   async deletePoll(pollId, username) {
     const poll = await this.pollsMemoryManagement.getPoll(pollId);
-
     if (!poll) {
-        throw new Error(`Poll with ID ${pollId} not found.`);
+      throw new Error(`Poll with ID ${pollId} not found.`);
     }
-
     if (poll.creator !== username) {
-        throw new Error('Only the creator can delete this poll.');
+      throw new Error('Only the creator can delete this poll.');
     }
-
     await this.pollsMemoryManagement.deletePoll(pollId);
   }
 }

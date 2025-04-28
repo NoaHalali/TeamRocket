@@ -1,22 +1,26 @@
+// @ts-nocheck
 // tests/Poll.test.js
-import Poll from '../src/models/Poll.js';
+import Poll from '../../src/models/Poll.js';
 
 describe('Poll Class', () => {
   // Basic Functionality & Individual Requirement Test
-  test('should create a poll with valid id, question, and options', () => {
+  test('should create a poll with valid id, question, options, and creator', () => {
     // Arrange
     const question = 'What is your favorite color?';
     const options = ['Red', 'Blue', 'Green'];
-
+    const creator = 'testuser';
+  
     // Act
-    const poll = new Poll(question, options);
-
+    const poll = new Poll(question, options, creator);
+  
     // Assert
     expect(poll.question).toBe(question);
     expect(poll.options).toEqual(options);
     expect(poll.totalVotes).toBe(0);
     expect(poll.results).toEqual({ Red: 0, Blue: 0, Green: 0 });
+    expect(poll.creator).toBe(creator); 
   });
+  
 
   // Negative Test: invalid question type
   test('should throw error if question is not a string', () => {
