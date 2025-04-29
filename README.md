@@ -3,17 +3,14 @@
 ---
 
 ## &#x20;Team Information
+Team number 1 - ROCKET TEAM
 
-
-
-> &#x20;**Action item:** Fill your names & IDs before submission.
+> &#x20;**Team Details:**
 Name: Paz Blutman, ID: 206000119
 Name: Guy Hanan, ID: 208748376
 Name: Noa Halali, ID: 211486725
 Name: Daniel Yavnik, ID: 323818856
 Name: Ben Nahmias, ID: 207192295
-פש
-
 ---
 
 ## &#x20;Design Assumptions
@@ -165,9 +162,7 @@ POST /api/polls/7f83…/vote
 
 1. **Code generation vs understanding** – AI accelerated boilerplate (e.g., route scaffolding) but still required *manual* validation & refactor for readability.
 2. ChatGPT was most helpful for *edge‑case tests* and *error‑message wording*.
-3. Blindly trusting AI suggestions led to subtle bug  always run  tests.
-
-
+3. Blindly trusting AI suggestions led to subtle bug always run  tests.
 
 ---
 
