@@ -8,6 +8,9 @@
 
 > &#x20;**Action item:** Fill your names & IDs before submission.
 Name: Paz Blutman, ID: 206000119
+Name: Guy Hanan, ID: 208748376
+Name: Noa Halali, ID: 211486725
+Name: Daniel Yavnik, ID: 323818856
 פש
 
 ---
